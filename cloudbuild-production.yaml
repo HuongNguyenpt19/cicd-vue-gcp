@@ -1,0 +1,31 @@
+steps:
+### Build Dockerfile with 2 tag :${SHORT_SHA} and latest
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/my-app-vue-prod:${SHORT_SHA}', '-t', 'gcr.io/$PROJECT_ID/my-app-vue-prod:latest', '.' ]
+### Push image in to Cloud Registry gcr.io/$PROJECT_ID/my-app-vue-prod tag ${SHORT_SHA}
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: 
+      - '-c'
+      - |
+          docker push gcr.io/$PROJECT_ID/my-app-vue-prod:${SHORT_SHA}
+### Push image in to Cloud Registry gcr.io/$PROJECT_ID/my-app-vue-prod tag latest
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: 
+      - '-c'
+      - |
+          docker push gcr.io/$PROJECT_ID/my-app-vue-prod:latest
+### Deploy image in to kubernetes cluster
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+    - run
+    - --filename=kubernetes/production
+    - --image=gcr.io/$PROJECT_ID/my-app-vue-prod:latest
+    - --location=asia-east1-a
+    - --cluster=gke-my-app-vue
+### Show image with tag latest and ${SHORT_SHA}    
+images: [
+   'gcr.io/$PROJECT_ID/my-app-vue-prod:latest',
+   'gcr.io/$PROJECT_ID/my-app-vue-prod:${SHORT_SHA}'
+  ]
